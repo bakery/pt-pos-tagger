@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Flask Documentation:     http://flask.pocoo.org/docs/
 Jinja2 Documentation:    http://jinja.pocoo.org/2/documentation/
@@ -7,11 +9,38 @@ This file creates your application.
 """
 
 import os
+import sys
+import logging
+from logging.handlers import RotatingFileHandler
 from flask import Flask, render_template, request, redirect, url_for
+from flask_restful import Resource, Api, reqparse
+from tagger import Tagger
 
 app = Flask(__name__)
+api = Api(app)
 
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
+app.config['PARSE_APPLICATION_ID'] = os.environ.get('PARSE_APPLICATION_ID', '3qytb5EL7BSVhLYhqL7j47cc7nThzRxUknuSGMv5')
+app.config['PARSE_API_KEY'] = os.environ.get('PARSE_API_KEY', 'e00zv4zpr81fBPC5N05LO6c8vCwBjVLzZCLXOD7G')
+
+tagger_options = {
+    'parse_app_id': '3qytb5EL7BSVhLYhqL7j47cc7nThzRxUknuSGMv5', #app.config['PARSE_APPLICATION_ID'],
+    'parse_api_key': 'e00zv4zpr81fBPC5N05LO6c8vCwBjVLzZCLXOD7G', #app.config['PARSE_API_KEY'],
+    'tagger_filename': './static/models/tagger.pickle',
+    'sentence_tokenizer_filename': './static/models/punkt/portuguese.pickle'
+}
+tagger = Tagger(tagger_options)
+
+parser = reqparse.RequestParser()
+parser.add_argument('text')
+
+class TaggerResource(Resource):
+     def post(self):        
+        args = parser.parse_args()
+        return {
+            'sentences': tagger.tag_text(args['text'])
+        }
+
+api.add_resource(TaggerResource, '/tagger')
 
 
 ###
@@ -59,4 +88,7 @@ def page_not_found(error):
 
 
 if __name__ == '__main__':
+    handler = RotatingFileHandler('./app.log', maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
     app.run(debug=True)
