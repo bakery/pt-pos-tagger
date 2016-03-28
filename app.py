@@ -19,14 +19,15 @@ from tagger import Tagger
 app = Flask(__name__)
 api = Api(app)
 
-app.config['PARSE_APPLICATION_ID'] = os.environ.get('PARSE_APPLICATION_ID', '3qytb5EL7BSVhLYhqL7j47cc7nThzRxUknuSGMv5')
-app.config['PARSE_API_KEY'] = os.environ.get('PARSE_API_KEY', 'e00zv4zpr81fBPC5N05LO6c8vCwBjVLzZCLXOD7G')
+CONFIG_KEYS = ['PARSE_APP_ID','PARSE_API_KEY','TAGGER_FILENAME','SENTENCE_TOKENIZER_FILENAME']
+for k in CONFIG_KEYS:
+    app.config[k] = os.environ.get(k)
 
 tagger_options = {
-    'parse_app_id': '3qytb5EL7BSVhLYhqL7j47cc7nThzRxUknuSGMv5', #app.config['PARSE_APPLICATION_ID'],
-    'parse_api_key': 'e00zv4zpr81fBPC5N05LO6c8vCwBjVLzZCLXOD7G', #app.config['PARSE_API_KEY'],
-    'tagger_filename': './static/models/tagger.pickle',
-    'sentence_tokenizer_filename': './static/models/punkt/portuguese.pickle'
+    'parse_app_id': app.config['PARSE_APP_ID'],
+    'parse_api_key': app.config['PARSE_API_KEY'],
+    'tagger_filename': app.config['TAGGER_FILENAME'],
+    'sentence_tokenizer_filename': app.config['SENTENCE_TOKENIZER_FILENAME']
 }
 tagger = Tagger(tagger_options)
 
